@@ -17,3 +17,8 @@ python experiments_ru.py                                                  # resu
 
 ## Bilingual prediction (EN + RU)
 python predict.py "Отличное платье, очень довольна!" "Great product, works as described."
+
+## Web demo (Streamlit)
+pip install streamlit
+python -m streamlit run app.py        # Windows: py -m streamlit run app.py
+# opens http://localhost:8501 — needs results_ru/model_ru.joblib (run experiments_ru.py first)
