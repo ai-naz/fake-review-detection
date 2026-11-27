@@ -3,7 +3,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether, PageBreak
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -27,6 +27,8 @@ ru_loo = pd.read_csv(RR + "leave_one_generator_out.csv"); ru_ho = pd.read_csv(RR
 ru_pg = pd.read_csv(RR + "per_generator_recall.csv").set_index("generator").recall
 rg = lambda st, m, c="macro_f1_mean": ru[(ru.setting == st) & (ru.model == m)][c].iloc[0]
 hg = lambda st, m, c: ru_ho[(ru_ho.setting == st) & (ru_ho.model == m)][c].iloc[0]
+DE, DR = json.load(open("results/defense_report_en.json")), json.load(open("results_ru/defense_report_ru.json"))
+de, dr = pd.read_csv("results/defense_results_en.csv"), pd.read_csv("results_ru/defense_results_ru.csv")
 
 def tbl(rows, widths, header=True):
     t = Table(rows, colWidths=widths)
@@ -44,6 +46,11 @@ P += [Paragraph("Detecting Computer-Generated Product Reviews in English and Rus
       Paragraph("NLP2 mini-project · e-commerce review integrity · November 2026", SM), Spacer(1, 6)]
 
 P += [Paragraph("Abstract", H2), Paragraph(
+    f"<b>Final result (Section 6):</b> with hyperparameters chosen by cross-validation on the training split only and a single "
+    f"evaluation on a held-out test split, a word/lemma + character TF-IDF linear SVM reaches macro-F1 <b>{de.f1_macro.iloc[-1]:.3f}</b> "
+    f"in English ({int(de.test_n.iloc[-1]):,} test reviews; stylometric baseline {de.f1_macro.iloc[1]:.3f}, majority class {de.f1_macro.iloc[0]:.3f}) "
+    f"and <b>{dr.f1_macro.iloc[-1]:.3f}</b> in Russian ({int(dr.test_n.iloc[-1])} test reviews; baseline {dr.f1_macro.iloc[1]:.3f}). "
+    f"Sections 3–5 report the exploratory analyses that led to it. "
     f"We train classical (non-LLM) classifiers to separate GPT-2-generated product reviews from real Amazon reviews "
     f"on the Salminen et al. (2022) dataset ({summ['n_reviews']:,} reviews, 10 categories, balanced). "
     f"A combined word + character TF-IDF and stylometric model reaches <b>macro-F1 {g('raw','combined'):.3f}</b> "
@@ -55,7 +62,7 @@ P += [Paragraph("Abstract", H2), Paragraph(
     f"most of all for Movies & TV. "
     f"<b>Russian extension:</b> we built a Russian dataset (real RuReviews plus reviews generated with ruGPT-3 and Qwen2.5). "
     f"The same pipeline with lemmatization reaches macro-F1 {rg('controlled','combined'):.2f} on those generators, "
-    f"but catches only {hg('controlled','combined','claude_recall')*100:.0f}% of held-out reviews written by a modern LLM (Claude). "
+    f"but the final model catches only {DR['modern_llm_probe']['fake_recall']*100:.0f}% of held-out reviews written by a modern LLM (Claude). "
     f"The English model is at chance on Russian (AUC {ru_s['en_model_on_ru']['roc_auc']:.2f}).", B)]
 
 P += [Paragraph("1. Research questions", H2), Paragraph(
@@ -132,7 +139,7 @@ P += [Paragraph("5. Russian-language extension", H2), Paragraph(
     "<b>ruGPT-3 small</b> (ai-forever, a GPT-2-era model, comparable to the English dataset) and <b>Qwen2.5-0.5B-Instruct</b> "
     "(a modern instruction-tuned model). We removed non-Cyrillic outputs (Qwen sometimes switched to Chinese) and refusal or meta "
     f"text, keeping {ru_s['n_kept_after_filter']['rugpt3']} ruGPT-3 and {ru_s['n_kept_after_filter']['qwen']} Qwen reviews, "
-    f"matched by sentiment with {ru_s['stats']['real']['n']} real reviews. A third set of {ru_s['stats']['claude']['n']} reviews written "
+    f"matched by sentiment with {DR['split']['train'] + DR['split']['test'] - ru_s['n_kept_after_filter']['rugpt3'] - ru_s['n_kept_after_filter']['qwen']:,} real reviews. A third set of {ru_s['stats']['claude']['n']} reviews written "
     "by Claude (a frontier LLM) is used <b>only as a held-out test</b> and is never trained on.", B),
   Paragraph(
     "<b>Method changes.</b> Lemmatization with pymorphy3 (Russian inflection splits one word into many forms), a Russian function-word list, "
@@ -169,14 +176,60 @@ P += [KeepTogether([Paragraph("<b>Held-out modern LLM test (Claude-written revie
     f"(specificity {hg('raw','stylometric','real_specificity'):.2f}). <b>Detectors trained on weak generators do not protect against strong ones.</b> "
     "Caveats: the Claude set is small (162 reviews), written in one session (one style), and shorter than average (10 words).", B)]
 
-P += [Paragraph("6. Limitations and threats to validity", H2), Paragraph(
+sec6 = []
+sec6 += [PageBreak(), Paragraph("6. Final evaluation protocol and results", H2), Paragraph(
+    "<b>Protocol.</b> (1) A fixed, stratified 80/20 train/test split (seed 42); the test split is never used for tuning or selection. "
+    "(2) The regularization strength C is chosen by stratified cross-validation <b>on the training split only</b> (EN 3-fold, RU 5-fold), with all "
+    "vectorizers refit inside every fold (scikit-learn Pipeline), so validation folds never leak into features. (3) The best configuration is refit "
+    "on the full training split, saved as the checkpoint used by the demo, and evaluated <b>once</b> on the test split. "
+    "The English test split is identical to the one used in Sections 3–4. For Russian, the split is stratified by source (real / ruGPT-3 / Qwen).", B)]
+cfg = [["", "English", "Russian"],
+       ["Train / test", f"{DE['split']['train']:,} / {DE['split']['test']:,}", f"{DR['split']['train']:,} / {DR['split']['test']:,}"],
+       ["Features", "word 1–2 + char 2–5 TF-IDF", "lemma 1–2 + char 2–5 TF-IDF"],
+       ["Classifier / loss", "LinearSVC, L2, squared hinge", "LinearSVC, L2, squared hinge"],
+       ["C (CV-selected)", f"{DE['tuning']['proposed_svm']['best_C']} (CV F1 {DE['tuning']['proposed_svm']['cv_f1']:.3f})", f"{DR['tuning']['proposed_svm']['best_C']} (CV F1 {DR['tuning']['proposed_svm']['cv_f1']:.3f})"],
+       ["Trainable parameters", f"{DE['model']['trainable_parameters']:,}", f"{DR['model']['trainable_parameters']:,}"],
+       ["Fit time (full train)", f"{DE['model']['fit_seconds_full_train']:.1f} s", f"{DR['model']['fit_seconds_full_train']:.1f} s"],
+       ["Latency (1 review, median)", f"{DE['timing']['latency_ms_per_review_median']:.1f} ms", f"{DR['timing']['latency_ms_per_review_median']:.1f} ms"],
+       ["Checkpoint size", f"{DE['timing']['model_file_mb']:.1f} MB", f"{DR['timing']['model_file_mb']:.1f} MB"]]
+sec6 += [tbl(cfg, [4.6*cm, 5.8*cm, 5.8*cm]), Paragraph("Hardware: 2-vCPU Intel Xeon 2.1 GHz, no GPU; scikit-learn 1.9.1; seed 42.", SM), Spacer(1, 6)]
+rows = [["Model", "Acc", "Prec", "Rec", "F1", "AUC", "n"]]
+for lang, d in [("EN", de), ("RU", dr)]:
+    for _, r in d.iterrows():
+        rows.append([f"{lang} · " + r.model.replace("PROPOSED: ", "► "), f"{r.accuracy:.3f}", f"{r.precision_macro:.3f}", f"{r.recall_macro:.3f}", f"{r.f1_macro:.3f}", f"{r.roc_auc:.3f}", f"{int(r.test_n):,}"])
+sec6 += [Paragraph("<b>Held-out test results</b> (macro-averaged; ► = proposed model):", B), tbl(rows, [7.6*cm, 1.4*cm, 1.4*cm, 1.4*cm, 1.4*cm, 1.4*cm, 1.4*cm]), Spacer(1, 4),
+    Paragraph(f"Per class (proposed): EN real P {de.precision_real.iloc[-1]:.3f} / R {de.recall_real.iloc[-1]:.3f}, fake P {de.precision_fake.iloc[-1]:.3f} / R {de.recall_fake.iloc[-1]:.3f}; "
+              f"RU real P {dr.precision_real.iloc[-1]:.3f} / R {dr.recall_real.iloc[-1]:.3f}, fake P {dr.precision_fake.iloc[-1]:.3f} / R {dr.recall_fake.iloc[-1]:.3f}. "
+              f"Confusion matrices [[TN, FP], [FN, TP]]: EN {de.iloc[-1]['confusion_matrix [[TN,FP],[FN,TP]]']}, RU {dr.iloc[-1]['confusion_matrix [[TN,FP],[FN,TP]]']}. "
+              f"RU recall on test by source: ruGPT-3 {DR['recall_by_generator_on_test']['rugpt3']:.3f}, Qwen {DR['recall_by_generator_on_test']['qwen']:.3f}. "
+              f"Modern-LLM probe (162 fakes + 162 real, never seen): {DR['modern_llm_probe']['fake_recall']*100:.0f}% of fakes caught, "
+              f"{DR['modern_llm_probe']['real_specificity']*100:.0f}% of real reviews kept.", B),
+    KeepTogether([Image("results/defense_curves_en.png", width=16*cm, height=6.1*cm), Image("results_ru/defense_curves_ru.png", width=16*cm, height=6.1*cm)]),
+    Paragraph("<b>Learning and validation curves.</b> Training F1 stays near 1.0 while validation F1 rises with more data "
+              f"(EN {DE['learning_curve']['val_f1'][0]:.2f} → {DE['learning_curve']['val_f1'][-1]:.2f}; RU {DR['learning_curve']['val_f1'][0]:.2f} → {DR['learning_curve']['val_f1'][-1]:.2f}): "
+              "a variance gap. The models fit the training data almost perfectly and would still gain from more data. The validation curve over C "
+              "shows where stronger regularization stops helping; we pick C at the validation peak.", B),
+    KeepTogether([Image("results/defense_epochs_en.png", width=16*cm, height=5.7*cm), Image("results_ru/defense_epochs_ru.png", width=16*cm, height=5.7*cm)]),
+    Paragraph("<b>Why no epochs for the SVM?</b> LinearSVC and logistic regression solve a convex problem to convergence with a deterministic solver, "
+              "so there is no epoch loop, learning rate or batch size. To show iterative training dynamics, we trained an equivalent linear model "
+              "with SGD (log loss, constant learning rate 0.3, L2 α = 1e-6, mini-batch 256) on a train/validation split of the training data. "
+              f"Validation loss falls steadily and flattens (EN {DE['sgd_epochs'][0]['val_loss']:.3f} → {DE['sgd_epochs'][-1]['val_loss']:.3f} after 25 epochs) while "
+              "training loss keeps falling: the widening gap is mild overfitting, which early stopping or stronger L2 would limit.", B),
+    Paragraph(f"<b>Leakage check.</b> For every test review we computed its maximum cosine similarity (word TF-IDF) to any training review. "
+              f"English: {DE['near_duplicates']['test_reviews_with_cosine']['>= 0.9']} of {DE['split']['test']:,} test reviews ≥ 0.9 "
+              f"(median {DE['near_duplicates']['max_cosine_median']:.2f}); removing them leaves F1 at {DE['near_duplicates']['f1_macro_without_near_dups(>=0.9)']:.3f}. "
+              f"Russian: {DR['near_duplicates']['test_reviews_with_cosine']['>= 0.8']} test reviews ≥ 0.8.", B),
+    Image("results/defense_cm_en.png", width=6*cm, height=5.3*cm)]
+P += sec6
+
+P += [Paragraph("7. Limitations and threats to validity", H2), Paragraph(
     "• The fakes come from <b>GPT-2 (2019)</b>. Reviews from modern LLMs are far more fluent and would very likely defeat these "
     "features. Treat the scores as an upper bound on how easy the task is.<br/>"
     "• <b>Machine-generated ≠ fraudulent.</b> Real fake reviews are often written by paid humans, and none are in this dataset.<br/>"
     "• Russian fakes were generated by us with small models and our own prompts (prompt echo, ruGPT-3 often ignores the requested tone). One domain (clothing). Kaspi/Wildberries reviews are untested.<br/>"
-    "• English results use one random split; Russian results use 5-fold CV.", B)]
+    "• One fixed test split per language; run-to-run variation is reported only as CV standard deviation on the training split (EN ±0.002, RU ±0.009). The Russian test set is small (409).<br/>• The English logistic-regression baseline picked C at the upper edge of its grid.", B)]
 
-P += [Paragraph("7. Conclusion and future work", H2), Paragraph(
+P += [Paragraph("8. Conclusion and future work", H2), Paragraph(
     "Classical NLP detects fakes from weak generators very well in both languages (F1 ≈ 0.96), but the scores are inflated by "
     "shortcuts (truncation in English; casing, punctuation and prompt echo in Russian), and they collapse against a modern LLM. "
     "A model trained on one language is useless on the other, so we ship a bilingual detector that routes by script. Next steps: "
@@ -184,9 +237,10 @@ P += [Paragraph("7. Conclusion and future work", H2), Paragraph(
     "(3) test on real Kaspi/Wildberries reviews; (4) add human-written (paid) fake reviews.", B)]
 
 P += [Paragraph("Reproducibility", H2), Paragraph(
+    "python defense_eval.py ru / en (≈1 / ≈20 min) → reported results, curves, checkpoints; "
     "python experiments.py (≈4 min on CPU) → main results, ablation, n-grams, errors; then python cross_category_fair.py → "
     "size-matched cross-category test; python generate_ru.py rugpt3 800 / qwen 288 → Russian fakes (≈35 min CPU); "
-    "python experiments_ru.py → Russian results + model; python predict.py \"text\" → bilingual EN/RU prediction; "
+    "python experiments_ru.py → exploratory Russian results; python predict.py \"text\" → bilingual EN/RU prediction; "
     "python make_report.py → this PDF. Seed 42.", SM)]
 
 SimpleDocTemplate("Fake_Review_Detection_Report_EN_RU.pdf", pagesize=A4, leftMargin=2.2*cm, rightMargin=2.2*cm,

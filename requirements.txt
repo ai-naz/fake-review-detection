@@ -1,0 +1,12 @@
+# Core: training, evaluation, inference, report, web demo
+# Versions used to produce the reported results (Python 3.13, CPU only). Also tested on Python 3.14 (Windows).
+numpy==2.5.3
+scipy==1.18.1
+pandas==3.0.5
+scikit-learn==1.9.1
+joblib==1.6.0
+pymorphy3==2.0.6
+pymorphy3-dicts-ru==2.4.417150.4580142
+matplotlib==3.11.2
+reportlab==5.0.1
+streamlit==1.67.0
