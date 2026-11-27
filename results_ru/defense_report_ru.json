@@ -1,0 +1,249 @@
+{
+ "hardware": {
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "python": "3.13.18",
+  "os": "Linux",
+  "gpu": "none (CPU only)"
+ },
+ "split": {
+  "train": 1635,
+  "test": 409,
+  "seed": 42,
+  "stratified_by": "generator (rugpt3/qwen/real)",
+  "test_by_generator": {
+   "real": 204,
+   "rugpt3": 153,
+   "qwen": 52
+  }
+ },
+ "tuning": {
+  "protocol": "5-fold stratified CV on train only, metric macro-F1",
+  "proposed_svm": {
+   "grid": [
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1,
+    2,
+    4
+   ],
+   "best_C": 0.1,
+   "cv_f1": 0.9663501879690102,
+   "cv_f1_std": 0.009287776796057405
+  },
+  "lemma_lr": {
+   "best_C": 8,
+   "cv_f1": 0.9626725562396906
+  }
+ },
+ "learning_curve": {
+  "train_sizes": [
+   130,
+   327,
+   654,
+   981,
+   1308
+  ],
+  "train_f1": [
+   0.9984504440073902,
+   0.9975520857124358,
+   0.9966332538166803,
+   0.9967370105820889,
+   0.9960244605418748
+  ],
+  "val_f1": [
+   0.9098197491612339,
+   0.9436923906665461,
+   0.9547228161579318,
+   0.9596181903254143,
+   0.9663501879690102
+  ]
+ },
+ "sgd_epochs": [
+  {
+   "epoch": 1,
+   "train_loss": 0.3619,
+   "val_loss": 0.3821,
+   "val_f1": 0.9634
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.2556,
+   "val_loss": 0.2863,
+   "val_f1": 0.9634
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.2018,
+   "val_loss": 0.24,
+   "val_f1": 0.9634
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.1684,
+   "val_loss": 0.2123,
+   "val_f1": 0.9634
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.1453,
+   "val_loss": 0.1938,
+   "val_f1": 0.9634
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.1282,
+   "val_loss": 0.1806,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 7,
+   "train_loss": 0.1149,
+   "val_loss": 0.1706,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 8,
+   "train_loss": 0.1041,
+   "val_loss": 0.1628,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 9,
+   "train_loss": 0.0953,
+   "val_loss": 0.1565,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 10,
+   "train_loss": 0.0879,
+   "val_loss": 0.1513,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 11,
+   "train_loss": 0.0816,
+   "val_loss": 0.147,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 12,
+   "train_loss": 0.0761,
+   "val_loss": 0.1433,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 13,
+   "train_loss": 0.0713,
+   "val_loss": 0.1401,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 14,
+   "train_loss": 0.0671,
+   "val_loss": 0.1373,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 15,
+   "train_loss": 0.0634,
+   "val_loss": 0.1349,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 16,
+   "train_loss": 0.06,
+   "val_loss": 0.1327,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 17,
+   "train_loss": 0.057,
+   "val_loss": 0.1308,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 18,
+   "train_loss": 0.0543,
+   "val_loss": 0.129,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 19,
+   "train_loss": 0.0518,
+   "val_loss": 0.1274,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 20,
+   "train_loss": 0.0496,
+   "val_loss": 0.126,
+   "val_f1": 0.9675
+  },
+  {
+   "epoch": 21,
+   "train_loss": 0.0475,
+   "val_loss": 0.1247,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 22,
+   "train_loss": 0.0456,
+   "val_loss": 0.1235,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 23,
+   "train_loss": 0.0439,
+   "val_loss": 0.1224,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 24,
+   "train_loss": 0.0422,
+   "val_loss": 0.1214,
+   "val_f1": 0.9715
+  },
+  {
+   "epoch": 25,
+   "train_loss": 0.0407,
+   "val_loss": 0.1204,
+   "val_f1": 0.9715
+  }
+ ],
+ "recall_by_generator_on_test": {
+  "rugpt3": 0.934640522875817,
+  "qwen": 0.9807692307692307,
+  "real": 0.9656862745098039
+ },
+ "modern_llm_probe": {
+  "n_fake": 162,
+  "n_real": 162,
+  "fake_recall": 0.2777777777777778,
+  "real_specificity": 0.9629629629629629,
+  "f1_macro": 0.5698882952889752
+ },
+ "model": {
+  "checkpoint": "results_ru/model_ru.joblib",
+  "features": 24561,
+  "trainable_parameters": 24562,
+  "fit_seconds_full_train": 0.5083949565887451
+ },
+ "timing": {
+  "latency_ms_per_review_median": 2.68756250000024,
+  "latency_ms_p95": 3.696694600034789,
+  "throughput_reviews_per_s": 4432.676813437607,
+  "model_file_mb": 1.189965
+ },
+ "near_duplicates": {
+  "test_reviews_with_cosine": {
+   ">= 0.8": 0,
+   ">= 0.9": 0
+  },
+  "max_cosine_median": 0.19262572290453805,
+  "f1_macro_without_near_dups(>=0.9)": 0.9559878521210963,
+  "n_kept": 409
+ }
+}

@@ -1,5 +1,5 @@
 data/fake.csv
 data_ru/rureviews.csv
-*.joblib
+results*/_tmp*.joblib
 __pycache__/
 *.log

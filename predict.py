@@ -27,24 +27,63 @@ def lemmatize(t):
         out.append(_cache[w])
     return " ".join(out)
 
+EN_C = 1  # chosen by 3-fold CV on the train split (results/defense_report_en.json)
+
+
 def load_en():
+    """Load the reported English checkpoint; if missing, rebuild it exactly as defense_eval.py does
+    (train split only: 80%, stratified, seed 42; word+char TF-IDF + LinearSVC with the CV-tuned C)."""
     p = Path("results/model_en.joblib")
     if p.exists(): return joblib.load(p)
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.svm import LinearSVC
-    print("Training English model (first run, ~1-2 min)...", file=sys.stderr)
-    d = pd.read_csv("data/fake.csv").dropna(subset=["text_"]); d["t"] = d.text_.map(control_en)
+    from sklearn.model_selection import train_test_split
+    print("Building English checkpoint from the train split (first run, ~1-2 min)...", file=sys.stderr)
+    import experiments_core as E
+    tr, _ = train_test_split(E.df, test_size=0.2, stratify=E.df.y, random_state=42)
+    t = tr.text_norm.to_numpy(dtype=object)
     vw = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_features=200_000, sublinear_tf=True)
     vc = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), min_df=3, max_features=300_000, sublinear_tf=True)
-    X = hstack([vw.fit_transform(d.t), vc.fit_transform(d.t)]).tocsr()
-    m = dict(vw=vw, vc=vc, clf=LinearSVC(C=0.5).fit(X, (d.label == "CG").astype(int)))
+    X = hstack([vw.fit_transform(t), vc.fit_transform(t)]).tocsr()
+    m = dict(vw=vw, vc=vc, clf=LinearSVC(C=EN_C, random_state=42).fit(X, tr.y.to_numpy()), trained_on="train split (80%, seed 42)", C=EN_C)
     p.parent.mkdir(exist_ok=True); joblib.dump(m, p); return m
+
+
+def load_ru():
+    p = Path("results_ru/model_ru.joblib")
+    if not p.exists():
+        sys.exit("Russian checkpoint missing: run  python defense_eval.py ru  (about 1 minute) first.")
+    return joblib.load(p)
+
+
+def explain(text, k=6):
+    """Preprocessing steps and the k features that pushed the score most (for the demo)."""
+    import numpy as np
+    if is_russian(text):
+        m, c = load_ru(), control_ru(text); lem = lemmatize(c)
+        names = [f"lemma: {w}" for w in m["vl"].get_feature_names_out()] + [f"chars: '{w}'" for w in m["vc"].get_feature_names_out()]
+        X = hstack([m["vl"].transform([lem]), m["vc"].transform([c])]).tocsr()
+        steps = {"language": "Russian", "normalized": c, "lemmas": lem, "word tokens": m["vl"].build_analyzer()(lem)[:20]}
+    else:
+        m, c = load_en(), control_en(text)
+        names = [f"word: {w}" for w in m["vw"].get_feature_names_out()] + [f"chars: '{w}'" for w in m["vc"].get_feature_names_out()]
+        X = hstack([m["vw"].transform([c]), m["vc"].transform([c])]).tocsr()
+        steps = {"language": "English", "normalized": c, "word tokens": m["vw"].build_analyzer()(c)[:20]}
+    w = m["clf"].coef_.ravel(); contrib = X.multiply(w).tocsr()
+    idx, val = contrib.indices, contrib.data
+    order = np.argsort(val)
+    steps["non-zero features"] = int(X.nnz)
+    steps["toward FAKE"] = [(names[idx[i]], round(float(val[i]), 3)) for i in order[::-1][:k] if val[i] > 0]
+    steps["toward REAL"] = [(names[idx[i]], round(float(val[i]), 3)) for i in order[:k] if val[i] < 0]
+    steps["score"] = float(m["clf"].decision_function(X)[0])
+    return steps
+
 
 def predict(texts):
     ru_m, en_m, res = None, None, []
     for t in texts:
         if is_russian(t):
-            ru_m = ru_m or joblib.load("results_ru/model_ru.joblib")
+            ru_m = ru_m or load_ru()
             c = control_ru(t); X = hstack([ru_m["vl"].transform([lemmatize(c)]), ru_m["vc"].transform([c])]); s = ru_m["clf"].decision_function(X)[0]; lang = "ru"
         else:
             en_m = en_m or load_en()

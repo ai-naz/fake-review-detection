@@ -184,8 +184,6 @@ ax.bar(x + w/2, c.real_specificity, w, label="real reviews kept (specificity)", 
 ax.set_xticks(x, ["Stylometric", "Word", "Lemma", "Char", "Combined"]); ax.set_ylim(0, 1.05); ax.set_ylabel("Share")
 ax.legend(frameon=False, fontsize=8, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2); fig.tight_layout(); fig.savefig(OUT / "fig_heldout_claude.png", dpi=200)
 
-# ---------------- save final RU model for the bilingual predictor ----------------
-vl, vc = vec("word"), vec("char")
-Xf = hstack([vl.fit_transform(df.lemmas), vc.fit_transform(df.text_ctrl)]).tocsr()
-joblib.dump(dict(vl=vl, vc=vc, clf=LinearSVC(C=0.5).fit(Xf, df.y)), OUT / "model_ru.joblib")
+# The deployed/reported Russian checkpoint (results_ru/model_ru.joblib) is produced by defense_eval.py
+# (tuned on the train split only, evaluated once on the held-out test split). This script is exploratory.
 print("done")

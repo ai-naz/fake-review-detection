@@ -1,0 +1,19 @@
+outcome,true,score,category,text
+correct,fake,1.5704395805457958,Clothing_Shoes_and_Jewelry,"I bought this looking for a pair of wide pants. I normally wear a size 10 and ordered a size 6. 5. I am a 32D, and the XL was perfect. The color was beautiful and the material was soft. The size 9 is very comfortable for me. The only thing I would change is the sizing. I usually wear a size 8 in jeans, and ordered a 9. 5."
+correct,fake,1.3453171996096067,Home_and_Kitchen,"it is quiet (whispering)
+easy to use
+
+cute
+
+love it!This is a great little coffee maker.  The plastic parts are very sturdy, and the cover is very sturdy.  The blades are very sharp, and the coffee is very hot.  I have had no issues with it.  I love the fact that I can use the coffee with a single spoon.  I just have to pull the coffee out of the machine, because it will eventually melt.  The machine is very quiet, and the coffee tastes good.  I'm very happy with this purchase"
+correct,fake,2.6337236567876436,Electronics,"Just received my second set.  I love the look and feel of this one.  I just wish it had a mic.  The sound is clear, and the cover is very sturdy.  The only complaint is that the cover is very thick."
+correct,real,-2.530653328584949,Books,"My daughter loved this book between the ages of 12-14 months.  She loved to make the sounds of each animal when she opened the flaps and found out what they were.  Now shes 16 months old, shes moved on to books with a little more storylines but she still goes back to this book from time to time and still enjoys telling me what each animal is and what they say."
+correct,real,-1.3018306059191278,Tools_and_Home_Improvement,"Daylight color. Very pleasant color. Nice built, works great. Cannot comment on the longevity just yet as I just installed them."
+correct,real,-0.7722009064922095,Books,This book was highly informative.  A wonderfully look at Welsh folk lore and a modern day love story.  I would suggest this book for anyone who loves historical novels.
+wrong,fake,-0.20399849975248996,Electronics,"Quiet, good airflow. Love it. Works great, just as advertised."
+wrong,fake,-0.5819397616199118,Pet_Supplies,"They bounce, they squeak, they go crazy, they chase you around the house, they knock over furniture.
+"
+wrong,fake,-0.24141339302468512,Electronics,Best triggers ever! Love this little mouse and the price is right.  I have a few mice and other stuff but this is the most solid and reliable
+wrong,real,0.09802754748091513,Clothing_Shoes_and_Jewelry,"A staple in my wardrobe, it's just cut a little lower than I thought."
+wrong,real,0.5149363292505996,Electronics,Firmware problem!!!!! that has not been fixed and no solution for new firmware
+wrong,real,0.23229286998804355,Pet_Supplies,"Price. Sturdy. I'm pleased I bought two, although I'm certain the one in use is going to last a long time. Highly recommend."

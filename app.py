@@ -1,9 +1,8 @@
 """Web demo for the bilingual fake-review detector.
 Run:  py -m streamlit run app.py      (Mac: python3 -m streamlit run app.py)
-Needs results_ru/model_ru.joblib (run experiments_ru.py once) and data/fake.csv (EN model trains on first use).
+Needs the checkpoints from defense_eval.py (results/model_en.joblib, results_ru/model_ru.joblib).
 """
 import math
-import joblib
 import streamlit as st
 from scipy.sparse import hstack
 import predict as P
@@ -13,7 +12,7 @@ st.set_page_config(page_title="Fake Review Detector", page_icon="🔍", layout="
 
 @st.cache_resource(show_spinner="Loading Russian model…")
 def ru_model():
-    return joblib.load("results_ru/model_ru.joblib")
+    return P.load_ru()
 
 
 @st.cache_resource(show_spinner="Loading English model (first run trains it, ~1–2 min)…")
@@ -60,11 +59,24 @@ if st.button("Check review", type="primary"):
         st.caption(f"Raw SVM score: {s:+.3f} (above 0 = fake, below 0 = real; near 0 = unsure)")
         if abs(s) < 0.15:
             st.warning("The score is close to 0, so the model is unsure. Short or generic reviews are hard.")
+        with st.expander("Show the pipeline: preprocessing → tokens → features → score", expanded=True):
+            ex = P.explain(text.strip())
+            steps = [f"**Language detected:** {ex['language']}", f"**Normalized text:** `{ex['normalized']}`"]
+            if "lemmas" in ex:
+                steps.append(f"**Lemmas (pymorphy3):** `{ex['lemmas']}`")
+            steps += [f"**Word tokens / n-grams (first 20):** `{', '.join(ex['word tokens'])}`",
+                      f"**TF-IDF vector:** {ex['non-zero features']} non-zero features (word/lemma n-grams + character 2–5-grams)"]
+            for i, line in enumerate(steps, 1):
+                st.markdown(f"{i}. {line}")
+            c1, c2 = st.columns(2)
+            c1.markdown("**Pushes toward FAKE**"); c1.table({"feature": [f for f, _ in ex["toward FAKE"]], "weight": [w for _, w in ex["toward FAKE"]]})
+            c2.markdown("**Pushes toward REAL**"); c2.table({"feature": [f for f, _ in ex["toward REAL"]], "weight": [w for _, w in ex["toward REAL"]]})
+            st.caption("Score = sum of (TF-IDF value × learned weight) over all features + bias. Above 0 → fake.")
 
 with st.expander("About the model & its limits"):
     st.markdown(
-        "- ~0.96 macro-F1 on fakes from GPT-2 (English) and ruGPT-3 / Qwen2.5 (Russian).\n"
-        "- Catches only ~17–31% of fakes written by a modern LLM: fluent, specific text often passes as real.\n"
+        "- Held-out test macro-F1: 0.956 English (8,083 reviews, GPT-2 fakes), 0.956 Russian (409 reviews, ruGPT-3/Qwen fakes).\n"
+        "- Catches only 28% of fakes written by a modern LLM (162-review probe): fluent, specific text often passes as real.\n"
         "- Can misjudge real reviews with typos or unusual phrasing.\n"
         "- Code & report: github.com/ai-naz/fake-review-detection"
     )

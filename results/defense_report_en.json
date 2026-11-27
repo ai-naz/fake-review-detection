@@ -1,0 +1,244 @@
+{
+ "hardware": {
+  "cpu": "x86_64",
+  "logical_cores": 2,
+  "python": "3.13.18",
+  "os": "Linux",
+  "gpu": "none (CPU only)"
+ },
+ "split": {
+  "train": 32329,
+  "test": 8083,
+  "seed": 42,
+  "stratified": true,
+  "class_balance_train_fake": 0.4997680101456896,
+  "class_balance_test_fake": 0.4998144253371273
+ },
+ "tuning": {
+  "protocol": "3-fold stratified CV on train only, metric macro-F1",
+  "word_lr": {
+   "grid": [
+    0.5,
+    1,
+    2,
+    4,
+    8,
+    16
+   ],
+   "best_C": 16,
+   "cv_f1": 0.9411621196089032
+  },
+  "proposed_svm": {
+   "grid": [
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1,
+    2
+   ],
+   "best_C": 1,
+   "cv_f1": 0.948714346300314,
+   "cv_f1_std": 0.0015722745341332635
+  },
+  "tuning_seconds": 344.8644196987152
+ },
+ "learning_curve": {
+  "train_sizes": [
+   1077,
+   2155,
+   5388,
+   10776,
+   21552
+  ],
+  "train_f1": [
+   1.0,
+   1.0,
+   1.0,
+   0.9999690670559488,
+   0.9998608017584619
+  ],
+  "val_f1": [
+   0.8826563754839746,
+   0.9028070590141318,
+   0.9267827972035994,
+   0.9399293104449683,
+   0.948714346300314
+  ]
+ },
+ "sgd_epochs": [
+  {
+   "epoch": 1,
+   "train_loss": 0.2503,
+   "val_loss": 0.2596,
+   "val_f1": 0.9189
+  },
+  {
+   "epoch": 2,
+   "train_loss": 0.1945,
+   "val_loss": 0.2144,
+   "val_f1": 0.9291
+  },
+  {
+   "epoch": 3,
+   "train_loss": 0.165,
+   "val_loss": 0.1935,
+   "val_f1": 0.9357
+  },
+  {
+   "epoch": 4,
+   "train_loss": 0.1454,
+   "val_loss": 0.1809,
+   "val_f1": 0.9415
+  },
+  {
+   "epoch": 5,
+   "train_loss": 0.1308,
+   "val_loss": 0.172,
+   "val_f1": 0.9425
+  },
+  {
+   "epoch": 6,
+   "train_loss": 0.1194,
+   "val_loss": 0.1657,
+   "val_f1": 0.9437
+  },
+  {
+   "epoch": 7,
+   "train_loss": 0.1101,
+   "val_loss": 0.1608,
+   "val_f1": 0.9452
+  },
+  {
+   "epoch": 8,
+   "train_loss": 0.1024,
+   "val_loss": 0.1569,
+   "val_f1": 0.9471
+  },
+  {
+   "epoch": 9,
+   "train_loss": 0.0959,
+   "val_loss": 0.1537,
+   "val_f1": 0.9474
+  },
+  {
+   "epoch": 10,
+   "train_loss": 0.0901,
+   "val_loss": 0.151,
+   "val_f1": 0.9483
+  },
+  {
+   "epoch": 11,
+   "train_loss": 0.0852,
+   "val_loss": 0.1489,
+   "val_f1": 0.9487
+  },
+  {
+   "epoch": 12,
+   "train_loss": 0.0807,
+   "val_loss": 0.1467,
+   "val_f1": 0.949
+  },
+  {
+   "epoch": 13,
+   "train_loss": 0.0768,
+   "val_loss": 0.145,
+   "val_f1": 0.9483
+  },
+  {
+   "epoch": 14,
+   "train_loss": 0.0734,
+   "val_loss": 0.1436,
+   "val_f1": 0.9483
+  },
+  {
+   "epoch": 15,
+   "train_loss": 0.0703,
+   "val_loss": 0.1423,
+   "val_f1": 0.9487
+  },
+  {
+   "epoch": 16,
+   "train_loss": 0.0675,
+   "val_loss": 0.1412,
+   "val_f1": 0.9505
+  },
+  {
+   "epoch": 17,
+   "train_loss": 0.0649,
+   "val_loss": 0.1402,
+   "val_f1": 0.9505
+  },
+  {
+   "epoch": 18,
+   "train_loss": 0.0626,
+   "val_loss": 0.1391,
+   "val_f1": 0.9502
+  },
+  {
+   "epoch": 19,
+   "train_loss": 0.0605,
+   "val_loss": 0.1383,
+   "val_f1": 0.9505
+  },
+  {
+   "epoch": 20,
+   "train_loss": 0.0585,
+   "val_loss": 0.1376,
+   "val_f1": 0.9508
+  },
+  {
+   "epoch": 21,
+   "train_loss": 0.0567,
+   "val_loss": 0.1369,
+   "val_f1": 0.9511
+  },
+  {
+   "epoch": 22,
+   "train_loss": 0.055,
+   "val_loss": 0.1364,
+   "val_f1": 0.9511
+  },
+  {
+   "epoch": 23,
+   "train_loss": 0.0535,
+   "val_loss": 0.1358,
+   "val_f1": 0.9517
+  },
+  {
+   "epoch": 24,
+   "train_loss": 0.0521,
+   "val_loss": 0.1352,
+   "val_f1": 0.9511
+  },
+  {
+   "epoch": 25,
+   "train_loss": 0.0507,
+   "val_loss": 0.1348,
+   "val_f1": 0.9517
+  }
+ ],
+ "model": {
+  "checkpoint": "results/model_en.joblib",
+  "features": 235118,
+  "trainable_parameters": 235119,
+  "fit_seconds_full_train": 17.635802030563354,
+  "word_lr_fit_seconds": 4.711676597595215
+ },
+ "timing": {
+  "latency_ms_per_review_median": 1.8991495001046133,
+  "latency_ms_p95": 3.8510091000034667,
+  "throughput_reviews_per_s": 1690.0704530571716,
+  "model_file_mb": 10.723328
+ },
+ "near_duplicates": {
+  "method": "max cosine similarity (word 1-2-gram TF-IDF fit on train) of each test review to any train review",
+  "test_reviews_with_cosine": {
+   ">= 0.8": 133,
+   ">= 0.9": 47
+  },
+  "max_cosine_median": 0.22344640137876345,
+  "f1_macro_without_near_dups(>=0.9)": 0.9559460936077218,
+  "n_kept": 8036
+ }
+}
